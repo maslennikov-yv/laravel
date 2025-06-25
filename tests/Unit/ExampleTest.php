@@ -1,16 +1,20 @@
 <?php
 
-namespace Tests\Unit;
+test('that true is true', function () {
+    expect(true)->toBeTrue();
+});
 
-use PHPUnit\Framework\TestCase;
+test('basic math operations', function () {
+    expect(2 + 2)->toBe(4);
+    expect(10)->toBeGreaterThan(5);
+    expect('Laravel')->toBeString();
+});
 
-class ExampleTest extends TestCase
-{
-    /**
-     * A basic test example.
-     */
-    public function test_that_true_is_true(): void
-    {
-        $this->assertTrue(true);
-    }
-}
+test('array operations', function () {
+    $array = [1, 2, 3, 4, 5];
+    
+    expect($array)
+        ->toHaveCount(5)
+        ->toContain(3)
+        ->not->toContain(6);
+});

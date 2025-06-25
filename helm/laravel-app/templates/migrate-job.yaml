@@ -1,0 +1,75 @@
+{{- if .Values.jobs.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "laravel-app.fullname" . }}-migrate
+  labels:
+    {{- include "laravel-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "laravel-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: {{ .Values.jobs.migrate.restartPolicy }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "laravel-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-database
+          image: busybox:1.35
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              {{- if .Values.postgresql.enabled }}
+              echo "Waiting for PostgreSQL..."
+              until nc -z {{ include "laravel-app.databaseHost" . }} {{ .Values.env.DB_PORT }}; do
+                echo "PostgreSQL is unavailable - sleeping"
+                sleep 2
+              done
+              echo "PostgreSQL is up"
+              {{- end }}
+      containers:
+        - name: migrate
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "laravel-app.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Running database migrations..."
+              php artisan migrate --force
+              echo "Migrations completed successfully"
+          envFrom:
+            {{- if .Values.configMap.create }}
+            - configMapRef:
+                name: {{ include "laravel-app.configMapName" . }}
+            {{- end }}
+            {{- if .Values.secret.create }}
+            - secretRef:
+                name: {{ include "laravel-app.secretName" . }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.jobs.migrate.resources | nindent 12 }}
+  backoffLimit: {{ .Values.jobs.migrate.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.jobs.migrate.activeDeadlineSeconds }}
+{{- end }} 

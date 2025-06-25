@@ -1,0 +1,64 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+*.md
+
+# Development
+.env.example
+.env.local
+.env.testing
+docker-compose.yml
+Makefile
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Laravel
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+!/storage/logs/.gitkeep
+!/storage/framework/cache/.gitkeep
+!/storage/framework/sessions/.gitkeep
+!/storage/framework/views/.gitkeep
+
+# Dependencies (will be installed during build)
+/node_modules
+/vendor
+
+# Build artifacts
+/public/hot
+/public/storage
+/public/build
+
+# Tests
+/tests
+phpunit.xml
+pest.json
+
+# Helm
+/helm
+
+# K8s configs
+/k8s
+
+# Docker
+/docker
+Dockerfile*
+
+# Logs
+*.log 

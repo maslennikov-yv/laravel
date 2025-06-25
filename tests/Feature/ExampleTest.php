@@ -1,19 +1,22 @@
 <?php
 
-namespace Tests\Feature;
+test('the application returns a successful response', function () {
+    $response = $this->get('/');
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+    $response->assertStatus(200);
+});
 
-class ExampleTest extends TestCase
-{
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
-    {
-        $response = $this->get('/');
+test('welcome page contains Laravel', function () {
+    $response = $this->get('/');
 
-        $response->assertStatus(200);
-    }
-}
+    $response
+        ->assertStatus(200)
+        ->assertSee('Laravel');
+});
+
+test('welcome page has correct structure', function () {
+    $response = $this->get('/');
+
+    expect($response->status())->toBe(200);
+    expect($response->getContent())->toContain('Laravel');
+});

@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "laravel-app.fullname" . }}
+  labels:
+    {{- include "laravel-app.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "laravel-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.envConfigMap.create }}
+        checksum/env-config: {{ include (print $.Template.BasePath "/env-configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "laravel-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: app
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "laravel-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-dependencies
+          image: busybox:1.35
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              {{- if .Values.postgresql.enabled }}
+              echo "Waiting for PostgreSQL..."
+              until nc -z {{ include "laravel-app.databaseHost" . }} {{ .Values.env.DB_PORT }}; do
+                echo "PostgreSQL is unavailable - sleeping"
+                sleep 2
+              done
+              echo "PostgreSQL is up"
+              {{- end }}
+              {{- if .Values.redis.enabled }}
+              echo "Waiting for Redis..."
+              until nc -z {{ include "laravel-app.redisHost" . }} {{ .Values.env.REDIS_PORT }}; do
+                echo "Redis is unavailable - sleeping"
+                sleep 2
+              done
+              echo "Redis is up"
+              {{- end }}
+              echo "All dependencies are ready"
+        - name: copy-code
+          image: {{ include "laravel-app.image" . }}
+          command: ["sh", "-c", "cp -r /var/www/html/* /shared/"]
+          volumeMounts:
+            - name: app-code
+              mountPath: /shared
+      containers:
+        - name: php-fpm
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "laravel-app.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: php-fpm
+              containerPort: 9000
+              protocol: TCP
+          envFrom:
+            {{- if .Values.configMap.create }}
+            - configMapRef:
+                name: {{ include "laravel-app.configMapName" . }}
+            {{- end }}
+            {{- if .Values.secret.create }}
+            - secretRef:
+                name: {{ include "laravel-app.secretName" . }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
+            {{- if .Values.envConfigMap.create }}
+            - name: env-config
+              mountPath: /var/www/html/.env
+              subPath: .env
+            {{- end }}
+        - name: nginx
+          image: {{ .Values.image.nginx.repository }}:{{ .Values.image.nginx.tag }}
+          imagePullPolicy: {{ .Values.image.nginx.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
+              readOnly: true
+        - name: queue
+          image: {{ include "laravel-app.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+          envFrom:
+            {{- if .Values.configMap.create }}
+            - configMapRef:
+                name: {{ include "laravel-app.configMapName" . }}
+            {{- end }}
+            {{- if .Values.secret.create }}
+            - secretRef:
+                name: {{ include "laravel-app.secretName" . }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
+            - name: storage
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- if .Values.envConfigMap.create }}
+            - name: env-config
+              mountPath: /var/www/html/.env
+              subPath: .env
+            {{- end }}
+      volumes:
+        - name: app-code
+          emptyDir: {}
+        {{- if .Values.envConfigMap.create }}
+        - name: env-config
+          configMap:
+            name: {{ include "laravel-app.fullname" . }}-env
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: storage
+          persistentVolumeClaim:
+            claimName: {{ include "laravel-app.pvcName" . }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

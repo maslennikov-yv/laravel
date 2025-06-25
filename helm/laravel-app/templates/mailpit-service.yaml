@@ -1,0 +1,23 @@
+{{- if .Values.mailpit.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "laravel-app.fullname" . }}-mailpit
+  labels:
+    {{- include "laravel-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mailpit
+spec:
+  type: {{ .Values.mailpit.service.type }}
+  ports:
+    - port: {{ .Values.mailpit.service.ports.smtp }}
+      targetPort: smtp
+      protocol: TCP
+      name: smtp
+    - port: {{ .Values.mailpit.service.ports.http }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "laravel-app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: mailpit
+{{- end }} 

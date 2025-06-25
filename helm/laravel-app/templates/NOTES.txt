@@ -1,0 +1,95 @@
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "laravel-app.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "laravel-app.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "laravel-app.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "{{ include "laravel-app.selectorLabels" . }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
+
+2. Application Configuration:
+   - Environment: {{ .Values.app.env }}
+   - Debug Mode: {{ .Values.app.debug }}
+   - Database: {{ include "laravel-app.databaseHost" . }}:{{ .Values.env.DB_PORT }}
+   - Redis: {{ include "laravel-app.redisHost" . }}:{{ .Values.env.REDIS_PORT }}
+   {{- if .Values.minio.enabled }}
+   - MinIO: {{ include "laravel-app.minioEndpoint" . }}
+   {{- end }}
+
+{{- if .Values.mailpit.enabled }}
+
+3. Mailpit Web Interface:
+   To access the Mailpit web interface for email testing:
+   {{- if .Values.ingress.enabled }}
+   http{{ if .Values.ingress.tls }}s{{ end }}://mailpit.{{ (index .Values.ingress.hosts 0).host }}
+   {{- else }}
+   kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "laravel-app.fullname" . }}-mailpit 8025:{{ .Values.mailpit.service.ports.http }}
+   Then visit http://127.0.0.1:8025
+   {{- end }}
+{{- end }}
+
+4. Enabled Services:
+   {{- if .Values.postgresql.enabled }}
+   ✓ PostgreSQL (internal)
+   {{- else }}
+   ✗ PostgreSQL (external: {{ .Values.externalServices.postgresql.host | default "not configured" }})
+   {{- end }}
+   {{- if .Values.redis.enabled }}
+   ✓ Redis (internal)
+   {{- else }}
+   ✗ Redis (external: {{ .Values.externalServices.redis.host | default "not configured" }})
+   {{- end }}
+   {{- if .Values.minio.enabled }}
+   ✓ MinIO (internal)
+   {{- else }}
+   ✗ MinIO/S3 (external: {{ .Values.externalServices.s3.endpoint | default "not configured" }})
+   {{- end }}
+   {{- if .Values.mailpit.enabled }}
+   ✓ Mailpit (internal)
+   {{- else }}
+   ✗ SMTP (external: {{ .Values.externalServices.smtp.host | default "not configured" }})
+   {{- end }}
+
+5. Useful Commands:
+   # Check application logs
+   kubectl --namespace {{ .Release.Namespace }} logs -l "{{ include "laravel-app.selectorLabels" . }}" -f
+
+   # Run artisan commands
+   kubectl --namespace {{ .Release.Namespace }} exec -it deployment/{{ include "laravel-app.fullname" . }} -- php artisan tinker
+
+   # Scale the application
+   kubectl --namespace {{ .Release.Namespace }} scale deployment {{ include "laravel-app.fullname" . }} --replicas=3
+
+   # Check migration job status
+   kubectl --namespace {{ .Release.Namespace }} get jobs -l "app.kubernetes.io/component=migrate"
+
+{{- if .Values.persistence.enabled }}
+
+6. Storage:
+   Laravel storage is mounted at {{ .Values.persistence.mountPath }}
+   PVC: {{ include "laravel-app.pvcName" . }} ({{ .Values.persistence.size }})
+{{- end }}
+
+{{- if .Values.autoscaling.enabled }}
+
+7. Auto-scaling:
+   HPA is enabled with {{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} replicas
+   CPU target: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}%
+   {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+   Memory target: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}%
+   {{- end }}
+{{- end }} 

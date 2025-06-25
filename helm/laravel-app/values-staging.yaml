@@ -1,0 +1,133 @@
+# Staging environment values
+# Override values for staging environment
+
+app:
+  env: staging
+  debug: false
+  url: "https://staging.your-domain.com"
+
+# Staging image with latest tag
+image:
+  tag: "staging"
+  pullPolicy: Always
+
+# Two replicas for staging
+replicaCount: 2
+
+# Mixed approach - some internal, some external services
+postgresql:
+  enabled: false  # Use external PostgreSQL
+
+# External services configuration (only for disabled services)
+externalServices:
+  # External PostgreSQL for staging
+  postgresql:
+    host: "staging-postgres.your-domain.com"
+    port: 5432
+    database: "laravel_staging"
+    username: "laravel_staging"
+    password: "staging-password"
+
+# Staging ingress with TLS
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: staging.your-domain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: laravel-app-staging-tls
+      hosts:
+        - staging.your-domain.com
+
+# Medium resource allocation for staging
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Enable autoscaling but with lower limits
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 85
+
+# Staging probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 45
+  periodSeconds: 15
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 20
+  failureThreshold: 40
+
+# Medium storage for staging
+persistence:
+  size: 10Gi
+
+# Staging-specific dependencies configuration
+redis:
+  enabled: true
+  master:
+    persistence:
+      size: 4Gi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+minio:
+  enabled: true
+  persistence:
+    size: 5Gi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+mailpit:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+
+# Environment-specific configuration
+env:
+  # Use local storage for staging (MinIO)
+  FILESYSTEM_DISK: s3
+  AWS_BUCKET: "staging-bucket"
+  
+  # Staging cache configuration
+  CACHE_DRIVER: redis
+  SESSION_DRIVER: redis
+  QUEUE_CONNECTION: redis
+  
+  # Mail configuration for staging
+  MAIL_MAILER: smtp
+  MAIL_FROM_ADDRESS: "staging@your-domain.com"
+  MAIL_FROM_NAME: "Staging App" 

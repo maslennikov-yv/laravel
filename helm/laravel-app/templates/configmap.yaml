@@ -1,0 +1,55 @@
+{{- if .Values.configMap.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "laravel-app.configMapName" . }}
+  labels:
+    {{- include "laravel-app.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  APP_NAME: {{ .Values.app.name | quote }}
+  APP_ENV: {{ .Values.app.env | quote }}
+  APP_DEBUG: {{ .Values.app.debug | quote }}
+  APP_URL: {{ .Values.app.url | quote }}
+  APP_TIMEZONE: {{ .Values.app.timezone | quote }}
+  APP_LOCALE: {{ .Values.app.locale | quote }}
+  APP_FALLBACK_LOCALE: {{ .Values.app.fallbackLocale | quote }}
+  LOG_CHANNEL: stderr
+  PSYSH_HISTORY: ""
+  
+  # Database configuration
+  DB_CONNECTION: {{ .Values.env.DB_CONNECTION | quote }}
+  DB_HOST: {{ include "laravel-app.databaseHost" . | quote }}
+  DB_PORT: {{ .Values.env.DB_PORT | quote }}
+  DB_DATABASE: {{ .Values.env.DB_DATABASE | quote }}
+  DB_USERNAME: {{ .Values.env.DB_USERNAME | quote }}
+  
+  # Redis configuration
+  REDIS_HOST: {{ include "laravel-app.redisHost" . | quote }}
+  REDIS_PORT: {{ .Values.env.REDIS_PORT | quote }}
+  
+  # Cache configuration
+  CACHE_DRIVER: {{ .Values.env.CACHE_DRIVER | quote }}
+  SESSION_DRIVER: {{ .Values.env.SESSION_DRIVER | quote }}
+  QUEUE_CONNECTION: {{ .Values.env.QUEUE_CONNECTION | quote }}
+  
+  # Mail configuration
+  MAIL_MAILER: {{ .Values.env.MAIL_MAILER | quote }}
+  MAIL_HOST: {{ include "laravel-app.mailHost" . | quote }}
+  MAIL_PORT: {{ include "laravel-app.mailPort" . | quote }}
+  MAIL_USERNAME: {{ .Values.env.MAIL_USERNAME | quote }}
+  MAIL_ENCRYPTION: {{ .Values.env.MAIL_ENCRYPTION | quote }}
+  MAIL_FROM_ADDRESS: {{ .Values.env.MAIL_FROM_ADDRESS | quote }}
+  MAIL_FROM_NAME: {{ .Values.env.MAIL_FROM_NAME | quote }}
+  
+  # Storage configuration
+  FILESYSTEM_DISK: {{ .Values.env.FILESYSTEM_DISK | quote }}
+  AWS_DEFAULT_REGION: {{ .Values.env.AWS_DEFAULT_REGION | quote }}
+  AWS_BUCKET: {{ .Values.env.AWS_BUCKET | quote }}
+  AWS_ENDPOINT: {{ include "laravel-app.minioEndpoint" . | quote }}
+  AWS_USE_PATH_STYLE_ENDPOINT: {{ .Values.env.AWS_USE_PATH_STYLE_ENDPOINT | quote }}
+  
+  {{- with .Values.configMap.data }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }} 

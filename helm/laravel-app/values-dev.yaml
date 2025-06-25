@@ -1,0 +1,136 @@
+# Development environment values
+# Override values for development environment
+
+app:
+  env: local
+  debug: true
+  url: "http://laravel-app.local"
+  key: "base64:iBywKf/ApF6tFuctRKqKQI+sC73oQrXRIGkPGeV2rVY="
+
+# Development image (usually latest or dev tag)
+image:
+  registry: localhost:32000
+  repository: laravel-app
+  tag: "php-fpm"
+  pullPolicy: Always
+  # Nginx sidecar image
+  nginx:
+    repository: localhost:32000/laravel-nginx
+    tag: working
+    pullPolicy: Always
+
+# Enable ingress for local development
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: laravel-app.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Smaller resource requests for development
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Disable autoscaling in development
+autoscaling:
+  enabled: false
+
+# Disable probes for PHP-FPM only setup
+livenessProbe:
+  enabled: false
+
+readinessProbe:
+  enabled: false
+
+startupProbe:
+  enabled: false
+
+# Smaller storage for development
+persistence:
+  size: 2Gi
+
+# Development-specific dependencies configuration
+redis:
+  enabled: true
+  master:
+    persistence:
+      size: 1Gi
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+postgresql:
+  enabled: true
+  primary:
+    persistence:
+      size: 2Gi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+minio:
+  enabled: true
+  persistence:
+    size: 2Gi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Environment variables for development
+env:
+  # Database configuration
+  DB_CONNECTION: pgsql
+  DB_HOST: "laravel-app-postgresql"
+  DB_PORT: "5432"
+  DB_DATABASE: laravel
+  DB_USERNAME: laravel
+  DB_PASSWORD: "laravel-password"
+  # Redis configuration
+  REDIS_HOST: "laravel-app-redis-master"
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: "redis-password"
+  REDIS_DB: "0"
+  # Cache configuration
+  CACHE_DRIVER: redis
+  SESSION_DRIVER: redis
+  QUEUE_CONNECTION: redis
+
+# Environment ConfigMap for development
+envConfigMap:
+  create: true
+  additionalEnv:
+    # Development-specific environment variables
+    BROADCAST_DRIVER: log
+    CACHE_PREFIX: laravel_dev_cache
+    SESSION_LIFETIME: 120
+    QUEUE_FAILED_DRIVER: database-uuids
+    # Enable debug features
+    APP_DEBUG: "true"
+    # Development mail settings
+    MAIL_MAILER: smtp
+    MAIL_HOST: "laravel-app-mailpit"
+    MAIL_PORT: "1025"
+    MAIL_FROM_ADDRESS: "dev@laravel-app.local"
+    MAIL_FROM_NAME: "Laravel Dev"

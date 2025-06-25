@@ -1,0 +1,61 @@
+{{- if .Values.mailpit.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "laravel-app.fullname" . }}-mailpit
+  labels:
+    {{- include "laravel-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mailpit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "laravel-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mailpit
+  template:
+    metadata:
+      labels:
+        {{- include "laravel-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mailpit
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: mailpit
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+          image: {{ .Values.mailpit.image.registry }}/{{ .Values.mailpit.image.repository }}:{{ .Values.mailpit.image.tag }}
+          imagePullPolicy: {{ .Values.mailpit.image.pullPolicy }}
+          ports:
+            - name: smtp
+              containerPort: {{ .Values.mailpit.service.ports.smtp }}
+              protocol: TCP
+            - name: http
+              containerPort: {{ .Values.mailpit.service.ports.http }}
+              protocol: TCP
+          env:
+            - name: MP_SMTP_BIND_ADDR
+              value: "0.0.0.0:{{ .Values.mailpit.service.ports.smtp }}"
+            - name: MP_UI_BIND_ADDR
+              value: "0.0.0.0:{{ .Values.mailpit.service.ports.http }}"
+          resources:
+            {{- toYaml .Values.mailpit.resources | nindent 12 }}
+          {{- if .Values.mailpit.persistence.enabled }}
+          volumeMounts:
+            - name: mailpit-data
+              mountPath: /data
+          {{- end }}
+      {{- if .Values.mailpit.persistence.enabled }}
+      volumes:
+        - name: mailpit-data
+          persistentVolumeClaim:
+            claimName: {{ include "laravel-app.fullname" . }}-mailpit-data
+      {{- end }}
+{{- end }} 

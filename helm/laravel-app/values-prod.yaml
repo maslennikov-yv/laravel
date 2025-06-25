@@ -1,0 +1,206 @@
+# Production environment values
+# Override values for production environment
+
+app:
+  env: production
+  debug: false
+  url: "https://your-domain.com"
+
+# Production image with specific tag
+image:
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+# Multiple replicas for production
+replicaCount: 3
+
+# Disable internal dependencies - use external services
+redis:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+minio:
+  enabled: false
+
+mailpit:
+  enabled: false
+
+# External services configuration
+externalServices:
+  # External PostgreSQL (e.g., AWS RDS, Google Cloud SQL)
+  postgresql:
+    host: "your-postgres-host.amazonaws.com"
+    port: 5432
+    database: "laravel_prod"
+    username: "laravel_user"
+    password: "your-secure-password"
+    # existingSecret: "postgres-credentials"
+    # existingSecretPasswordKey: "password"
+
+  # External Redis (e.g., AWS ElastiCache, Redis Cloud)
+  redis:
+    host: "your-redis-cluster.cache.amazonaws.com"
+    port: 6379
+    password: "your-redis-password"
+    # existingSecret: "redis-credentials"
+    # existingSecretPasswordKey: "password"
+
+  # External S3 storage (AWS S3, Google Cloud Storage)
+  s3:
+    endpoint: "https://s3.amazonaws.com"
+    region: "us-east-1"
+    bucket: "your-laravel-bucket"
+    accessKey: "your-access-key"
+    secretKey: "your-secret-key"
+    # existingSecret: "s3-credentials"
+    # existingSecretAccessKeyKey: "access-key"
+    # existingSecretSecretKeyKey: "secret-key"
+
+  # External SMTP (e.g., SendGrid, Mailgun, SES)
+  smtp:
+    host: "smtp.sendgrid.net"
+    port: 587
+    username: "apikey"
+    password: "your-sendgrid-api-key"
+    encryption: "tls"
+    # existingSecret: "smtp-credentials"
+    # existingSecretPasswordKey: "password"
+
+# Production ingress with TLS
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: your-domain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: laravel-app-tls
+      hosts:
+        - your-domain.com
+
+# Production resource limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Enable autoscaling for production
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Production probes with stricter settings
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 30
+
+# Production storage
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClass: "gp3"  # AWS EBS gp3 or your preferred storage class
+
+# Security context for production
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+# Network policy for production security
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    - to: []  # Allow all egress traffic
+      ports:
+        - protocol: TCP
+          port: 443  # HTTPS
+        - protocol: TCP
+          port: 80   # HTTP
+        - protocol: TCP
+          port: 5432 # PostgreSQL
+        - protocol: TCP
+          port: 6379 # Redis
+        - protocol: TCP
+          port: 587  # SMTP
+
+# Production node affinity (optional)
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - application
+
+# Tolerations for dedicated nodes (optional)
+tolerations: []
+
+# Node selector for production nodes (optional)
+nodeSelector: {}
+
+# Environment-specific configuration
+env:
+  # Use S3 for file storage in production
+  FILESYSTEM_DISK: s3
+  AWS_BUCKET: "your-laravel-bucket"
+  
+  # Production cache configuration
+  CACHE_DRIVER: redis
+  SESSION_DRIVER: redis
+  QUEUE_CONNECTION: redis
+  
+  # Mail configuration for production
+  MAIL_MAILER: smtp
+  MAIL_FROM_ADDRESS: "noreply@your-domain.com"
+  MAIL_FROM_NAME: "Your App Name" 

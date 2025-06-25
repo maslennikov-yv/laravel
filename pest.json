@@ -1,0 +1,22 @@
+{
+    "testdox": true,
+    "colors": "always",
+    "coverage": {
+        "include": [
+            "app"
+        ],
+        "exclude": [
+            "app/Console",
+            "app/Exceptions/Handler.php",
+            "app/Http/Middleware"
+        ],
+        "report": {
+            "html": "coverage-report",
+            "text": true
+        }
+    },
+    "parallel": {
+        "processes": "auto"
+    },
+    "memory_limit": "512M"
+} 
