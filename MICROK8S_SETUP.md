@@ -1,6 +1,7 @@
 # 🚀 Краткое руководство по установке MicroK8s и запуску Laravel приложения
 
 ## 📋 Содержание
+
 - [Установка MicroK8s](#установка-microk8s)
 - [Настройка для Laravel](#настройка-для-laravel)
 - [Запуск приложения](#запуск-приложения)
@@ -11,6 +12,7 @@
 ## 🐧 Установка MicroK8s
 
 ### Linux (Ubuntu/Debian)
+
 ```bash
 # Установка через snap
 sudo snap install microk8s --classic
@@ -30,6 +32,7 @@ microk8s status
 ```
 
 ### macOS
+
 ```bash
 # Установка через Homebrew
 brew install ubuntu/microk8s/microk8s
@@ -42,6 +45,7 @@ microk8s status
 ```
 
 ### Windows
+
 ```bash
 # Установка через winget
 winget install Canonical.MicroK8s
@@ -61,6 +65,7 @@ microk8s status
 ## ⚙️ Настройка MicroK8s
 
 ### 1. Включение необходимых аддонов
+
 ```bash
 # Основные аддоны для Laravel
 microk8s enable dns          # DNS для разрешения имен
@@ -76,6 +81,7 @@ microk8s enable metrics-server # Метрики
 ```
 
 ### 2. Настройка kubectl
+
 ```bash
 # Настройка конфигурации kubectl
 microk8s config > ~/.kube/config
@@ -86,6 +92,7 @@ kubectl get nodes
 ```
 
 ### 3. Настройка Helm
+
 ```bash
 # Проверка Helm
 helm version
@@ -100,12 +107,14 @@ helm repo update
 ## 🏗️ Настройка для Laravel
 
 ### 1. Клонирование проекта
+
 ```bash
 git clone <your-repo-url>
 cd example-app1
 ```
 
 ### 2. Сборка Docker образов
+
 ```bash
 # Сборка PHP-FPM образа
 make docker-push-k8s
@@ -115,6 +124,7 @@ make docker-push-k8s
 ```
 
 ### 3. Создание namespace
+
 ```bash
 kubectl create namespace laravel-app-dev
 ```
@@ -124,6 +134,7 @@ kubectl create namespace laravel-app-dev
 ## 🚀 Запуск приложения
 
 ### 1. Развертывание через Helm
+
 ```bash
 # Развертывание в development окружении
 make hd
@@ -136,6 +147,7 @@ helm upgrade laravel-app helm/laravel-app \
 ```
 
 ### 2. Проверка статуса
+
 ```bash
 # Статус всех ресурсов
 make k8s-st
@@ -145,6 +157,7 @@ kubectl get all -n laravel-app-dev
 ```
 
 ### 3. Доступ к приложению
+
 ```bash
 # Проброс портов для локального доступа
 make k8s-pf
@@ -160,6 +173,7 @@ kubectl port-forward -n laravel-app-dev svc/laravel-app 8080:80
 ## 🔧 Полезные команды
 
 ### Управление приложением
+
 ```bash
 # Показать статус
 make k8s-st
@@ -193,6 +207,7 @@ make k8s-pf
 ```
 
 ### Управление Helm
+
 ```bash
 # Статус релиза
 helm status laravel-app -n laravel-app-dev
@@ -208,6 +223,7 @@ helm uninstall laravel-app -n laravel-app-dev
 ```
 
 ### Управление MicroK8s
+
 ```bash
 # Статус кластера
 microk8s status
@@ -230,6 +246,7 @@ microk8s refresh
 ## 🐛 Устранение неполадок
 
 ### Проблемы с образами
+
 ```bash
 # Проверка registry
 curl http://localhost:32000/v2/_catalog
@@ -239,6 +256,7 @@ make docker-push-k8s
 ```
 
 ### Проблемы с правами доступа
+
 ```bash
 # Исправление прав для Linux
 sudo usermod -a -G microk8s $USER
@@ -247,6 +265,7 @@ newgrp microk8s
 ```
 
 ### Проблемы с DNS
+
 ```bash
 # Перезапуск DNS
 microk8s disable dns
@@ -254,6 +273,7 @@ microk8s enable dns
 ```
 
 ### Проблемы с хранилищем
+
 ```bash
 # Перезапуск storage
 microk8s disable storage
@@ -294,4 +314,4 @@ make k8s-pf
 # http://localhost:8080
 ```
 
-**Готово! 🎉** 
+**Готово! 🎉**

@@ -134,6 +134,7 @@ make k8s-port-forward
 **Файл**: `helm/laravel-app/values-dev.yaml`
 
 **Особенности**:
+
 - Все зависимости включены
 - Debug режим включен
 - Минимальные ресурсы
@@ -162,6 +163,7 @@ resources:
 ```
 
 **Деплой**:
+
 ```bash
 make helm-deploy-dev
 ```
@@ -171,6 +173,7 @@ make helm-deploy-dev
 **Файл**: `helm/laravel-app/values-staging.yaml`
 
 **Особенности**:
+
 - Смешанный подход к зависимостям
 - TLS включен
 - Ограниченное автомасштабирование
@@ -184,7 +187,7 @@ app:
 redis:
   enabled: true
 postgresql:
-  enabled: false  # Внешняя БД
+  enabled: false # Внешняя БД
 minio:
   enabled: true
 mailpit:
@@ -204,6 +207,7 @@ autoscaling:
 ```
 
 **Деплой**:
+
 ```bash
 make helm-deploy-staging
 ```
@@ -213,6 +217,7 @@ make helm-deploy-staging
 **Файл**: `helm/laravel-app/values-prod.yaml`
 
 **Особенности**:
+
 - Все зависимости внешние
 - Высокие ресурсы
 - Полное автомасштабирование
@@ -236,11 +241,11 @@ mailpit:
 # Внешние сервисы
 externalServices:
   postgresql:
-    host: "prod-db.amazonaws.com"
+    host: 'prod-db.amazonaws.com'
   redis:
-    host: "prod-cache.amazonaws.com"
+    host: 'prod-cache.amazonaws.com'
   s3:
-    endpoint: "https://s3.amazonaws.com"
+    endpoint: 'https://s3.amazonaws.com'
 
 # Высокие ресурсы
 resources:
@@ -256,6 +261,7 @@ autoscaling:
 ```
 
 **Деплой**:
+
 ```bash
 make helm-deploy-prod
 ```
@@ -281,7 +287,7 @@ postgresql:
   auth:
     database: laravel
     username: laravel
-    password: "secure-password"
+    password: 'secure-password'
   primary:
     persistence:
       size: 8Gi
@@ -290,8 +296,8 @@ minio:
   enabled: true
   auth:
     rootUser: minioadmin
-    rootPassword: "minio-password"
-  defaultBuckets: "laravel"
+    rootPassword: 'minio-password'
+  defaultBuckets: 'laravel'
 
 mailpit:
   enabled: true
@@ -317,32 +323,32 @@ mailpit:
 # Настраиваем внешние
 externalServices:
   postgresql:
-    host: "your-rds.amazonaws.com"
+    host: 'your-rds.amazonaws.com'
     port: 5432
-    database: "laravel_prod"
-    username: "laravel"
-    password: "secure-password"
+    database: 'laravel_prod'
+    username: 'laravel'
+    password: 'secure-password'
     # Или используем существующий secret
     # existingSecret: "postgres-credentials"
     # existingSecretPasswordKey: "password"
 
   redis:
-    host: "your-elasticache.amazonaws.com"
+    host: 'your-elasticache.amazonaws.com'
     port: 6379
-    password: "redis-password"
+    password: 'redis-password'
 
   s3:
-    endpoint: "https://s3.amazonaws.com"
-    region: "us-east-1"
-    bucket: "your-bucket"
-    accessKey: "your-access-key"
-    secretKey: "your-secret-key"
+    endpoint: 'https://s3.amazonaws.com'
+    region: 'us-east-1'
+    bucket: 'your-bucket'
+    accessKey: 'your-access-key'
+    secretKey: 'your-secret-key'
 
   smtp:
-    host: "smtp.sendgrid.net"
+    host: 'smtp.sendgrid.net'
     port: 587
-    username: "apikey"
-    password: "your-api-key"
+    username: 'apikey'
+    password: 'your-api-key'
 ```
 
 ## 🚀 Деплой и управление
@@ -357,7 +363,7 @@ make helm-deps              # Установка зависимостей
 
 # Деплой
 make helm-deploy-dev        # Development
-make helm-deploy-staging    # Staging  
+make helm-deploy-staging    # Staging
 make helm-deploy-prod       # Production
 
 # Управление
@@ -504,7 +510,7 @@ networkPolicy:
     - to: []
       ports:
         - protocol: TCP
-          port: 443  # HTTPS
+          port: 443 # HTTPS
         - protocol: TCP
           port: 5432 # PostgreSQL
         - protocol: TCP
@@ -520,7 +526,7 @@ securityContext:
   runAsGroup: 1000
   capabilities:
     drop:
-    - ALL
+      - ALL
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
 ```
@@ -532,6 +538,7 @@ securityContext:
 Для мониторинга и управления кластером через веб-интерфейс можно установить Kubernetes Dashboard.
 
 #### Быстрая установка
+
 ```bash
 # Установить Dashboard
 make k8s-dashboard-install
@@ -544,6 +551,7 @@ make k8s-dashboard-access
 ```
 
 #### Использование скрипта
+
 ```bash
 # Полная установка
 ./k8s/setup-dashboard.sh install
@@ -589,8 +597,9 @@ Dashboard создает административного пользовате
 ## 🛠️ Troubleshooting
 
 ### Документация по решению проблем
+
 - [Certificate Issues](k8s/troubleshooting-certificates.md) - TLS и проблемы подключения kubelet
-- [ImagePullBackOff](k8s/fix-image-pull.md) - Проблемы загрузки Docker образов  
+- [ImagePullBackOff](k8s/fix-image-pull.md) - Проблемы загрузки Docker образов
 - [Service Endpoints](k8s/fix-service-endpoints.md) - Конфликты маршрутизации сервисов
 
 ### Общие проблемы
@@ -663,6 +672,7 @@ kubectl exec -it test-pod -- nslookup laravel-app.laravel-app-dev.svc.cluster.lo
 ## 🤝 Поддержка
 
 Для вопросов и проблем:
+
 1. Проверьте [Troubleshooting](#troubleshooting)
 2. Создайте issue в репозитории
-3. Обратитесь к команде DevOps 
+3. Обратитесь к команде DevOps

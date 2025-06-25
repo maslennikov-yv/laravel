@@ -1,71 +1,192 @@
-FROM ubuntu:24.04
+# Multi-stage Laravel Dockerfile for Development
+# PHP 8.3 + All development tools
 
-LABEL maintainer="Taylor Otwell"
+# =============================================================================
+# Base stage - PHP 8.3 with extensions
+# =============================================================================
+FROM php:8.3-fpm-alpine as base
 
-ARG WWWGROUP
-ARG NODE_VERSION=22
-ARG MYSQL_CLIENT="mysql-client"
-ARG POSTGRES_VERSION=17
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libwebp-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    postgresql-dev \
+    npm \
+    nodejs \
+    bash \
+    vim \
+    nano \
+    htop \
+    supervisor
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp
+
+RUN docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip \
+    opcache \
+    intl \
+    soap
+
+# Install Redis extension
+RUN apk add --no-cache --virtual .build-deps autoconf g++ make php-pear && \
+    pecl install redis && docker-php-ext-enable redis && \
+    apk del .build-deps
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Create www-data user with specific UID/GID
+RUN addgroup -g 1000 -S www-data || true && \
+    adduser -u 1000 -D -S -G www-data www-data || true
+
+# Set working directory
+WORKDIR /var/www/html
+
+# =============================================================================
+# Development stage - All development tools
+# =============================================================================
+FROM base as development
+
+# Switch to root for installing dev tools
+USER root
+
+# Install Xdebug for development
+RUN apk add --no-cache --virtual .build-deps autoconf g++ make linux-headers && \
+    pecl install xdebug && docker-php-ext-enable xdebug && \
+    apk del .build-deps
+
+# Install additional development tools
+RUN apk add --no-cache \
+    python3 \
+    py3-pip
+
+# Install global npm packages for development
+RUN npm install -g \
+    eslint@^8.0.0 \
+    stylelint@^15.0.0 \
+    prettier@^3.0.0 \
+    @vue/cli@^5.0.0
+
+# Copy PHP configuration
+COPY docker/8.4/php.ini /usr/local/etc/php/conf.d/99-custom.ini
+COPY docker/8.4/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+# Copy Supervisor configuration
+COPY docker/8.4/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor && \
+    chown -R www-data:www-data /var/log/supervisor && \
+    chmod -R 755 /var/log/supervisor
+
+# Create PHP-FPM log directory
+RUN mkdir -p /var/log && \
+    touch /var/log/php-fpm-access.log /var/log/php-fpm-slow.log /var/log/php-fpm-error.log && \
+    chown -R www-data:www-data /var/log && \
+    chmod -R 755 /var/log
+
+# Create necessary directories and set permissions
+RUN mkdir -p \
+    /var/www/html/storage/logs \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/app/public \
+    /var/www/html/bootstrap/cache \
+    /var/www/html/public \
+    && chown -R www-data:www-data /var/www/html/storage \
+    && chown -R www-data:www-data /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/public \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/public
+
+# Create health check endpoint
+RUN echo '<?php' > /var/www/html/public/health.php \
+    && echo 'http_response_code(200);' >> /var/www/html/public/health.php \
+    && echo 'echo json_encode(["status" => "healthy", "timestamp" => date("c"), "service" => "php-fpm-dev"]);' >> /var/www/html/public/health.php
+
+# Switch to www-data user
+USER www-data
+
+# Expose PHP-FPM port
+EXPOSE 9000
+
+# Start Supervisor (which will start PHP-FPM)
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+# =============================================================================
+# Production stage - Runtime environment
+# =============================================================================
+FROM base as production
+
+# Copy PHP configuration
+COPY docker/8.4/php.ini /usr/local/etc/php/conf.d/99-custom.ini
+COPY docker/8.4/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+# Create necessary directories and set permissions
+RUN mkdir -p \
+    /var/www/html/storage/logs \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/app/public \
+    /var/www/html/bootstrap/cache \
+    /var/www/html/public \
+    && chown -R www-data:www-data /var/www/html/storage \
+    && chown -R www-data:www-data /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/public \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/public
+
+# Create health check endpoint
+RUN echo '<?php' > /var/www/html/public/health.php \
+    && echo 'http_response_code(200);' >> /var/www/html/public/health.php \
+    && echo 'echo json_encode(["status" => "healthy", "timestamp" => date("c"), "service" => "php-fpm"]);' >> /var/www/html/public/health.php
+
+# Switch to www-data user
+USER www-data
+
+# Expose PHP-FPM port
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
+
+# =============================================================================
+# Nginx stage for development
+# =============================================================================
+FROM nginx:alpine as nginx-dev
+
+COPY docker/8.4/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Логи в stdout/stderr для удобства
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
 
 WORKDIR /var/www/html
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
-ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
-ENV SUPERVISOR_PHP_USER="sail"
+EXPOSE 80
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
-
-RUN apt-get update && apt-get upgrade -y \
-    && mkdir -p /etc/apt/keyrings \
-    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano  \
-    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
-    && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
-    && apt-get update \
-    && apt-get install -y php8.4-cli php8.4-dev \
-       php8.4-pgsql php8.4-sqlite3 php8.4-gd \
-       php8.4-curl php8.4-mongodb \
-       php8.4-imap php8.4-mysql php8.4-mbstring \
-       php8.4-xml php8.4-zip php8.4-bcmath php8.4-soap \
-       php8.4-intl php8.4-readline \
-       php8.4-ldap \
-       php8.4-msgpack php8.4-igbinary php8.4-redis php8.4-swoole \
-       php8.4-memcached php8.4-pcov php8.4-imagick php8.4-xdebug \
-    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install -y nodejs \
-    && npm install -g npm \
-    && npm install -g pnpm \
-    && npm install -g bun \
-    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /etc/apt/keyrings/yarn.gpg >/dev/null \
-    && echo "deb [signed-by=/etc/apt/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/keyrings/pgdg.gpg >/dev/null \
-    && echo "deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-    && apt-get update \
-    && apt-get install -y yarn \
-    && apt-get install -y $MYSQL_CLIENT \
-    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
-    && apt-get -y autoremove \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.4
-
-RUN userdel -r ubuntu
-RUN groupadd --force -g $WWWGROUP sail
-RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
-
-COPY start-container /usr/local/bin/start-container
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY php.ini /etc/php/8.4/cli/conf.d/99-sail.ini
-RUN chmod +x /usr/local/bin/start-container
-
-EXPOSE 80/tcp
-
-ENTRYPOINT ["start-container"]
+CMD ["nginx", "-g", "daemon off;"]

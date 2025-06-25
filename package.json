@@ -1,17 +1,62 @@
 {
-    "$schema": "https://json.schemastore.org/package.json",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "vite build",
-        "dev": "vite"
-    },
-    "devDependencies": {
-        "@tailwindcss/vite": "^4.0.0",
-        "axios": "^1.8.2",
-        "concurrently": "^9.0.1",
-        "laravel-vite-plugin": "^1.2.0",
-        "tailwindcss": "^4.0.0",
-        "vite": "^6.2.4"
-    }
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "prepare": "husky install",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:js": "eslint resources/js --ext .js,.vue --fix",
+    "lint:css": "stylelint resources/css --fix",
+    "lint:php": "docker compose -f docker-compose.dev.yml run --rm php-dev composer lint",
+    "lint:php:fix": "docker compose -f docker-compose.dev.yml run --rm php-dev composer lint-fix",
+    "test": "docker compose -f docker-compose.dev.yml run --rm php-dev composer test",
+    "test:coverage": "docker compose -f docker-compose.dev.yml run --rm php-dev composer test-coverage",
+    "security": "docker compose -f docker-compose.dev.yml run --rm php-dev composer security",
+    "pre-commit": "lint-staged",
+    "docker:setup": "./setup-husky-docker.sh",
+    "docker:up": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:shell": "docker compose -f docker-compose.dev.yml run --rm php-dev bash",
+    "docker:node": "docker compose -f docker-compose.dev.yml run --rm node-dev bash",
+    "prettier": "prettier --check \"**/*.{js,jsx,ts,tsx,vue,css,scss,md,json}\"",
+    "prettier:check": "prettier --check \"**/*.{js,jsx,ts,tsx,vue,css,scss,md,json}\"",
+    "prettier:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,vue,css,scss,md,json}\"",
+    "stylelint": "stylelint resources/css --fix",
+    "stylelint:check": "stylelint resources/css",
+    "stylelint:fix": "stylelint resources/css --fix"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "axios": "^1.8.2",
+    "concurrently": "^9.0.1",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "husky": "^9.0.11",
+    "laravel-vite-plugin": "^1.2.0",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.6.1",
+    "stylelint": "^15.0.0",
+    "stylelint-config-standard": "^34.0.0",
+    "stylelint-config-tailwindcss": "^0.0.7",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.2.4"
+  },
+  "lint-staged": {
+    "*.{js,vue}": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{css,scss}": [
+      "stylelint --fix",
+      "git add"
+    ],
+    "*.php": [
+      "docker compose -f docker-compose.dev.yml run --rm php-dev composer lint-fix",
+      "git add"
+    ]
+  }
 }

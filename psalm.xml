@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="4"
+    resolveFromConfigFile="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="false"
+    memoryLimit="2G"
+    cacheDirectory=".psalm-cache"
+>
+    <projectFiles>
+        <directory name="app"/>
+        <directory name="config"/>
+        <directory name="database"/>
+        <directory name="resources"/>
+        <directory name="routes"/>
+        <ignoreFiles>
+            <directory name="vendor"/>
+            <directory name="storage"/>
+            <directory name="bootstrap/cache"/>
+        </ignoreFiles>
+    </projectFiles>
+
+    <issueHandlers>
+        <UndefinedMethod>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedMethod>
+        <UndefinedClass>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedClass>
+        <UndefinedPropertyFetch>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedPropertyFetch>
+        <UndefinedPropertyAssignment>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedPropertyAssignment>
+        <UndefinedVariable>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedVariable>
+        <UndefinedGlobalVariable>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedGlobalVariable>
+        <UndefinedFunction>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedFunction>
+        <UndefinedConstant>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedConstant>
+        <UndefinedInterface>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedInterface>
+        <UndefinedTrait>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedTrait>
+        <UndefinedDocblockClass>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockClass>
+        <UndefinedDocblockType>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockType>
+        <UndefinedDocblockMethod>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockMethod>
+        <UndefinedDocblockProperty>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockProperty>
+        <UndefinedDocblockParam>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockParam>
+        <UndefinedDocblockReturnType>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockReturnType>
+        <UndefinedDocblockThrows>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockThrows>
+        <UndefinedDocblockVar>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockVar>
+        <UndefinedDocblockPropertyFetch>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockPropertyFetch>
+        <UndefinedDocblockMethodCall>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockMethodCall>
+        <UndefinedDocblockClassConstant>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockClassConstant>
+        <UndefinedDocblockFunction>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockFunction>
+        <UndefinedDocblockNamespace>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockNamespace>
+        <UndefinedDocblockTrait>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockTrait>
+        <UndefinedDocblockInterface>
+            <errorLevel type="suppress">
+                <directory name="app/Http/Controllers"/>
+                <directory name="app/Models"/>
+                <directory name="app/Providers"/>
+            </errorLevel>
+        </UndefinedDocblockInterface>
+    </issueHandlers>
+</psalm> 

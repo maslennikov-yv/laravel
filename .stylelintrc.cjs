@@ -1,0 +1,66 @@
+module.exports = {
+  extends: ['stylelint-config-standard', 'stylelint-config-tailwindcss'],
+  rules: {
+    'at-rule-no-unknown': [
+      true,
+      {
+        ignoreAtRules: [
+          'tailwind',
+          'apply',
+          'variants',
+          'responsive',
+          'screen',
+          'layer',
+          'source',
+          'theme',
+        ],
+      },
+    ],
+    'declaration-block-trailing-semicolon': null,
+    'no-descending-specificity': null,
+    'selector-class-pattern': null,
+    'selector-pseudo-class-no-unknown': [
+      true,
+      {
+        ignorePseudoClasses: ['global'],
+      },
+    ],
+    'selector-pseudo-element-no-unknown': [
+      true,
+      {
+        ignorePseudoElements: ['v-deep', 'v-global', 'v-slotted'],
+      },
+    ],
+    'property-no-vendor-prefix': null,
+    'value-no-vendor-prefix': null,
+    'declaration-no-important': null,
+    'max-nesting-depth': 3,
+    'color-hex-length': 'short',
+    'color-named': null,
+    'font-weight-notation': 'numeric',
+    'function-url-quotes': 'always',
+    'string-quotes': 'single',
+    'unit-case': 'lower',
+    'value-keyword-case': 'lower',
+    'property-case': 'lower',
+    'selector-type-case': 'lower',
+    'media-feature-name-case': 'lower',
+    'at-rule-name-case': 'lower',
+    'function-name-case': 'lower',
+    'declaration-block-no-duplicate-properties': true,
+    'declaration-block-no-shorthand-property-overrides': true,
+    'declaration-property-value-disallowed-list': {
+      '/^border/': ['none'],
+      '/^background/': ['none'],
+      '/^margin/': ['0'],
+      '/^padding/': ['0'],
+    },
+    'keyframes-name-pattern': null,
+  },
+  ignoreFiles: [
+    'node_modules/**/*',
+    'vendor/**/*',
+    'storage/**/*',
+    'bootstrap/cache/**/*',
+  ],
+};

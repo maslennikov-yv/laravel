@@ -1,0 +1,183 @@
+name: CD - Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ghcr.io/${{ github.repository }}/laravel-app
+          ghcr.io/${{ github.repository }}/laravel-nginx
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Laravel app image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/k8s/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+
+    - name: Build and push Nginx image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/k8s/nginx.Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest'
+
+    - name: Configure kubectl
+      run: |
+        echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+
+    - name: Deploy to Kubernetes
+      run: |
+        export KUBECONFIG=kubeconfig
+        
+        # Get version from tag or input
+        if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        
+        echo "Deploying version: $VERSION"
+        
+        # Deploy using Helm
+        helm upgrade --install laravel-app helm/laravel-app \
+          --namespace laravel-app-prod \
+          --create-namespace \
+          --values helm/laravel-app/values-prod.yaml \
+          --set-string image.tag=$VERSION \
+          --set-string image.repository=ghcr.io/${{ github.repository }}/laravel-app \
+          --set-string nginx.image.tag=$VERSION \
+          --set-string nginx.image.repository=ghcr.io/${{ github.repository }}/laravel-nginx \
+          --wait \
+          --timeout=15m
+
+    - name: Wait for deployment
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl rollout status deployment/laravel-app -n laravel-app-prod --timeout=300s
+
+    - name: Run health check
+      run: |
+        export KUBECONFIG=kubeconfig
+        
+        # Wait for service to be ready
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=laravel-app -n laravel-app-prod --timeout=300s
+        
+        # Port forward and test health endpoint
+        kubectl port-forward -n laravel-app-prod svc/laravel-app 8080:80 &
+        PF_PID=$!
+        
+        # Wait for port forward to be ready
+        sleep 10
+        
+        # Test health endpoint
+        for i in {1..30}; do
+          if curl -f http://localhost:8080/health; then
+            echo "Health check passed"
+            break
+          fi
+          echo "Health check attempt $i failed, retrying..."
+          sleep 5
+        done
+        
+        # Cleanup port forward
+        kill $PF_PID || true
+
+    - name: Run production smoke tests
+      run: |
+        export KUBECONFIG=kubeconfig
+        
+        # Test basic connectivity
+        kubectl port-forward -n laravel-app-prod svc/laravel-app 8080:80 &
+        PF_PID=$!
+        sleep 5
+        
+        # Test main page
+        curl -f http://localhost:8080/ || echo "Main page test failed"
+        
+        # Test Laravel routes
+        curl -f http://localhost:8080/api/health || echo "API health test failed"
+        
+        # Test database connectivity
+        kubectl exec -n laravel-app-prod deployment/laravel-app -c php-fpm -- php artisan tinker --execute="echo 'DB connection: ' . (DB::connection()->getPdo() ? 'OK' : 'FAILED');" || echo "Database test failed"
+        
+        kill $PF_PID || true
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Production deployment successful!"
+          echo "Version: $VERSION"
+        else
+          echo "❌ Production deployment failed!"
+          exit 1
+        fi 

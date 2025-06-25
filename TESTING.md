@@ -5,18 +5,21 @@
 ## 🐳 Предварительные требования
 
 Убедитесь, что Docker и Docker Compose установлены на вашей системе:
+
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## 🚀 Быстрый старт
 
 ### Первоначальная настройка
+
 ```bash
 # Настроить проект (запустить контейнеры, установить зависимости, выполнить миграции)
 make setup
 ```
 
 ### Запуск всех тестов
+
 ```bash
 # В Docker контейнерах (рекомендуется)
 vendor/bin/sail pest
@@ -28,6 +31,7 @@ make test-local
 ```
 
 ### Запуск определенного типа тестов
+
 ```bash
 # Unit тесты в Docker
 make test-unit
@@ -42,6 +46,7 @@ make test-coverage
 ## 📋 Доступные команды
 
 ### 🐳 Docker/Sail команды
+
 - `make sail-up` / `make up` - Запустить Docker контейнеры
 - `make sail-down` / `make down` - Остановить Docker контейнеры
 - `make sail-build` / `make build` - Пересобрать Docker контейнеры
@@ -49,6 +54,7 @@ make test-coverage
 - `make setup` - Полная настройка проекта в Docker
 
 ### 🧪 Основные команды тестирования
+
 - `make test` - Запустить все тесты в Docker
 - `make test-unit` - Запустить только Unit тесты в Docker
 - `make test-feature` - Запустить только Feature тесты в Docker
@@ -56,6 +62,7 @@ make test-coverage
 - `make test-parallel` - Запустить тесты параллельно в Docker
 
 ### 🔍 Специальные команды тестирования
+
 - `make test-group GROUP=auth` - Запустить тесты определенной группы
 - `make test-filter FILTER="User Model"` - Запустить тесты с фильтром
 - `make test-watch` - Запустить тесты в режиме наблюдения
@@ -63,6 +70,7 @@ make test-coverage
 - `make test-coverage-html` - Создать HTML отчет о покрытии
 
 ### 🛠️ Команды разработки
+
 - `make install` - Установить PHP зависимости в Docker
 - `make npm-install` - Установить npm зависимости в Docker
 - `make migrate` - Запустить миграции в Docker
@@ -71,10 +79,12 @@ make test-coverage
 - `make clean` - Очистить кеш и временные файлы
 
 ### 📦 Локальные команды (без Docker)
+
 - `make test-local` - Запустить тесты локально
 - `make install-local` - Установить зависимости локально
 
 ### 🔗 Краткие алиасы
+
 - `make t` - test
 - `make tu` - test-unit
 - `make tf` - test-feature
@@ -103,6 +113,7 @@ tests/
 ## ✨ Возможности Pest
 
 ### 1. Простой синтаксис
+
 ```php
 // Вместо PHPUnit
 class ExampleTest extends TestCase
@@ -120,6 +131,7 @@ test('example', function () {
 ```
 
 ### 2. Описательные тесты
+
 ```php
 it('can create a user', function () {
     $user = User::factory()->create();
@@ -128,12 +140,13 @@ it('can create a user', function () {
 ```
 
 ### 3. Группировка с describe
+
 ```php
 describe('User Model', function () {
     test('can create user', function () {
         // тест
     });
-    
+
     test('can update user', function () {
         // тест
     });
@@ -141,6 +154,7 @@ describe('User Model', function () {
 ```
 
 ### 4. Datasets для параметризованных тестов
+
 ```php
 it('validates emails', function (string $email, bool $isValid) {
     // тест
@@ -151,12 +165,13 @@ it('validates emails', function (string $email, bool $isValid) {
 ```
 
 ### 5. Хуки beforeEach/afterEach
+
 ```php
 describe('User tests', function () {
     beforeEach(function () {
         $this->user = User::factory()->create();
     });
-    
+
     test('user exists', function () {
         expect($this->user)->toBeInstanceOf(User::class);
     });
@@ -164,6 +179,7 @@ describe('User tests', function () {
 ```
 
 ### 6. Группировка тестов
+
 ```php
 test('auth test', function () {
     // тест
@@ -173,6 +189,7 @@ test('auth test', function () {
 ```
 
 ### 7. Пропуск тестов
+
 ```php
 test('will be skipped', function () {
     // тест
@@ -186,6 +203,7 @@ test('conditional skip', function () {
 ## 🎯 Expectations (Ожидания)
 
 ### Базовые ожидания
+
 ```php
 expect($value)
     ->toBe(42)                    // ===
@@ -212,6 +230,7 @@ expect($value)
 ```
 
 ### Laravel специфичные ожидания
+
 ```php
 // HTTP Response
 expect($response)
@@ -227,6 +246,7 @@ expect($validator)->toHaveErrors(['email']);
 ```
 
 ### Кастомные ожидания
+
 ```php
 // В tests/Pest.php
 expect()->extend('toBeValidEmail', function () {
@@ -259,21 +279,23 @@ test('controllers have Controller suffix', function () {
 ## 🔧 Конфигурация
 
 ### pest.json
+
 ```json
 {
-    "testdox": true,
-    "colors": "always",
-    "coverage": {
-        "include": ["app"],
-        "exclude": ["app/Console"]
-    },
-    "parallel": {
-        "processes": 4
-    }
+  "testdox": true,
+  "colors": "always",
+  "coverage": {
+    "include": ["app"],
+    "exclude": ["app/Console"]
+  },
+  "parallel": {
+    "processes": 4
+  }
 }
 ```
 
 ### tests/Pest.php
+
 ```php
 // Расширение TestCase для Feature тестов
 pest()->extend(Tests\TestCase::class)
@@ -295,6 +317,7 @@ function createUser(array $attributes = []): User
 ## 🐳 Работа с Docker
 
 ### Управление контейнерами
+
 ```bash
 # Запустить все контейнеры
 make up
@@ -313,6 +336,7 @@ make sail-logs
 ```
 
 ### Выполнение команд в контейнере
+
 ```bash
 # Выполнить любую artisan команду
 make artisan CMD="route:list"
@@ -364,7 +388,9 @@ vendor/bin/sail pest --watch
 ## 🔧 Настройка окружения
 
 ### Переменные окружения для тестов
+
 В файле `phpunit.xml` настроены переменные для тестового окружения:
+
 ```xml
 <env name="APP_ENV" value="testing"/>
 <env name="DB_CONNECTION" value="sqlite"/>
@@ -373,7 +399,9 @@ vendor/bin/sail pest --watch
 ```
 
 ### Docker Compose настройки
+
 Проект использует Laravel Sail с PHP 8.4 и следующими сервисами:
+
 - **PostgreSQL** - основная база данных
 - **Redis** - кеширование и очереди
 - **Mailpit** - тестирование email
@@ -384,12 +412,14 @@ vendor/bin/sail pest --watch
 ## 🎨 Полезные советы
 
 1. **Используйте описательные имена тестов**
+
    ```php
    it('creates user with valid email address')
    it('throws exception when email is invalid')
    ```
 
 2. **Группируйте связанные тесты**
+
    ```php
    describe('User authentication', function () {
        // тесты аутентификации
@@ -397,6 +427,7 @@ vendor/bin/sail pest --watch
    ```
 
 3. **Используйте datasets для тестирования множественных сценариев**
+
    ```php
    it('validates different inputs', function ($input, $expected) {
        // тест
@@ -419,4 +450,4 @@ vendor/bin/sail pest --watch
 - [Официальная документация Pest](https://pestphp.com/docs)
 - [Pest Laravel Plugin](https://pestphp.com/docs/plugins/laravel)
 - [Pest Architecture Plugin](https://pestphp.com/docs/plugins/arch)
-- [Примеры тестов в этом проекте](tests/) 
+- [Примеры тестов в этом проекте](tests/)

@@ -125,6 +125,16 @@ help: ## Показать справку
 	@echo "  $(YELLOW)npm-dev$(RESET)                        Запустить npm dev в Docker"
 	@echo "  $(YELLOW)npm-build$(RESET)                      Собрать фронтенд в Docker"
 	@echo ""
+	@echo "$(GREEN)🔍 Линтинг и исправление кода:$(RESET)"
+	@echo "  $(YELLOW)lint$(RESET)                           Запустить все линтеры в Docker"
+	@echo "  $(YELLOW)lint-fix$(RESET)                       Исправить все ошибки линтеров в Docker"
+	@echo "  $(YELLOW)eslint$(RESET)                         Запустить ESLint для JS/TS в Docker"
+	@echo "  $(YELLOW)eslint-fix$(RESET)                     Исправить JS/TS с ESLint в Docker"
+	@echo "  $(YELLOW)stylelint$(RESET)                      Запустить Stylelint для CSS/SCSS в Docker"
+	@echo "  $(YELLOW)stylelint-fix$(RESET)                  Исправить CSS/SCSS с Stylelint в Docker"
+	@echo "  $(YELLOW)prettier$(RESET)                       Запустить Prettier для форматирования в Docker"
+	@echo "  $(YELLOW)prettier-fix$(RESET)                   Исправить форматирование с Prettier в Docker"
+	@echo ""
 	@echo "$(GREEN)🐳 Docker/Sail:$(RESET)"
 	@grep -E '^sail-[a-zA-Z_-]+:.*## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "}; {printf "  $(YELLOW)%-30s$(RESET) %s\n", $$1, $$2}'
 	@echo ""
@@ -148,7 +158,7 @@ help: ## Показать справку
 	@echo "$(BLUE)💡 Справка:$(RESET)"
 	@echo "  $(YELLOW)help$(RESET)                           Показать эту справку (все команды)"
 	@echo "  $(YELLOW)help-quick$(RESET)                     Показать только основные команды"
-	@echo "  $(YELLOW)help-k8s$(RESET)                       Показать только Kubernetes/Helm команды"
+	@echo "  $(YELLOW)help-k8s$(RESET)                       Показать все Kubernetes/Helm команды"
 	@echo ""
 	@echo "$(CYAN)📖 Документация:$(RESET)"
 	@echo "  README.md           - Основная документация проекта"
@@ -174,6 +184,11 @@ help-quick: ## Показать только основные команды
 	@echo "  $(YELLOW)make migrate$(RESET)        - Запустить миграции"
 	@echo "  $(YELLOW)make clean$(RESET)          - Очистить кеш"
 	@echo "  $(YELLOW)make shell$(RESET)          - Войти в контейнер"
+	@echo ""
+	@echo "$(GREEN)🔍 Линтинг:$(RESET)"
+	@echo "  $(YELLOW)make lint$(RESET)           - Запустить все линтеры"
+	@echo "  $(YELLOW)make lint-fix$(RESET)       - Исправить все ошибки"
+	@echo "  $(YELLOW)make eslint-fix$(RESET)     - Исправить JS/TS ошибки"
 	@echo ""
 	@echo "$(GREEN)☸️  Kubernetes:$(RESET)"
 	@echo "  $(YELLOW)make k8s-logs$(RESET)        - Логи приложения"
@@ -808,6 +823,78 @@ docker-build-k8s-dev: ## Собрать Docker образ для Kubernetes (dev
 docker-push-k8s: ## Собрать и загрузить образ в Microk8s registry
 	@echo "$(BLUE)Сборка и загрузка в Microk8s registry...$(RESET)"
 	./docker/k8s/build-and-push.sh
+
+# =============================================================================
+# Линтинг и исправление кода
+# =============================================================================
+
+lint: ## Запустить все линтеры в Docker
+	@echo "$(GREEN)Запуск всех линтеров в Docker...$(RESET)"
+	@echo "$(BLUE)📦 JavaScript/TypeScript lint...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+	@echo "$(BLUE)💄 CSS/SCSS lint...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+	@echo "$(BLUE)🐘 PHP lint...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint
+	@echo "$(GREEN)✅ Все линтеры прошли успешно!$(RESET)"
+
+lint-js: ## Запустить только JavaScript/TypeScript линтер в Docker
+	@echo "$(GREEN)Запуск JavaScript/TypeScript линтера в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+
+lint-css: ## Запустить только CSS/SCSS линтер в Docker
+	@echo "$(GREEN)Запуск CSS/SCSS линтера в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+
+lint-php: ## Запустить только PHP линтер в Docker
+	@echo "$(GREEN)Запуск PHP линтера в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint
+
+lint-fix: ## Исправить все ошибки линтеров в Docker
+	@echo "$(GREEN)Исправление ошибок линтеров в Docker...$(RESET)"
+	@echo "$(BLUE)📦 Исправление JavaScript/TypeScript...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+	@echo "$(BLUE)💄 Исправление CSS/SCSS...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+	@echo "$(BLUE)🐘 Исправление PHP...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint-fix
+	@echo "$(GREEN)✅ Все ошибки исправлены!$(RESET)"
+
+lint-fix-js: ## Исправить только JavaScript/TypeScript ошибки в Docker
+	@echo "$(GREEN)Исправление JavaScript/TypeScript ошибок в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+
+lint-fix-css: ## Исправить только CSS/SCSS ошибки в Docker
+	@echo "$(GREEN)Исправление CSS/SCSS ошибок в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+
+lint-fix-php: ## Исправить только PHP ошибки в Docker
+	@echo "$(GREEN)Исправление PHP ошибок в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint-fix
+
+prettier: ## Запустить Prettier для форматирования кода в Docker
+	@echo "$(GREEN)Запуск Prettier в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run prettier:check
+
+prettier-fix: ## Исправить форматирование кода с Prettier в Docker
+	@echo "$(GREEN)Исправление форматирования с Prettier в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx prettier --write .
+
+stylelint: ## Запустить Stylelint для CSS/SCSS в Docker
+	@echo "$(GREEN)Запуск Stylelint в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run stylelint
+
+stylelint-fix: ## Исправить CSS/SCSS с Stylelint в Docker
+	@echo "$(GREEN)Исправление CSS/SCSS с Stylelint в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx stylelint --fix resources/css/
+
+eslint: ## Запустить ESLint для JavaScript/TypeScript в Docker
+	@echo "$(GREEN)Запуск ESLint в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx eslint resources/js --ext .js,.vue
+
+eslint-fix: ## Исправить JavaScript/TypeScript с ESLint в Docker
+	@echo "$(GREEN)Исправление JavaScript/TypeScript с ESLint в Docker...$(RESET)"
+	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx eslint resources/js --ext .js,.vue --fix
 
 # =============================================================================
 # Алиасы для краткости
