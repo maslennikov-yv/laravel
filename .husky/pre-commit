@@ -1,1 +1,39 @@
-npx lint-staged
+#!/usr/bin/env sh
+
+# Ensure PATH includes common binary locations
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
+echo "🔍 Running pre-commit checks in Docker containers..."
+
+# Check if Docker is available with multiple methods
+if [ -x "/usr/bin/docker" ]; then
+    DOCKER_CMD="/usr/bin/docker"
+elif command -v docker &> /dev/null; then
+    DOCKER_CMD="docker"
+else
+    echo "❌ Docker is not available. Please install Docker first."
+    exit 1
+fi
+
+# Run JavaScript/TypeScript linting
+echo "📦 Running JavaScript/TypeScript linting..."
+if ! $DOCKER_CMD compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js; then
+    echo "❌ JavaScript/TypeScript linting failed!"
+    exit 1
+fi
+
+# Run CSS/SCSS linting
+echo "💄 Running CSS/SCSS linting..."
+if ! $DOCKER_CMD compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css; then
+    echo "❌ CSS/SCSS linting failed!"
+    exit 1
+fi
+
+# Run PHP linting
+echo "🐘 Running PHP linting..."
+if ! $DOCKER_CMD compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer lint; then
+    echo "❌ PHP linting failed!"
+    exit 1
+fi
+
+echo "✅ Pre-commit checks completed!"

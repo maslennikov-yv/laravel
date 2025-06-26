@@ -47,13 +47,13 @@
   },
   "lint-staged": {
     "*.{js,vue}": [
-      "eslint --fix"
+      "docker compose -f docker-compose.dev.yml run -T --rm node-dev npx eslint --fix"
     ],
     "*.{css,scss}": [
-      "stylelint --fix"
+      "docker compose -f docker-compose.dev.yml run -T --rm node-dev npx stylelint --fix"
     ],
     "*.php": [
-      "docker compose -f docker-compose.dev.yml run --rm php-dev composer lint-fix"
+      "docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer lint-fix"
     ]
   }
 }
