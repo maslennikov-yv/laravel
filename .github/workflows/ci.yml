@@ -132,7 +132,9 @@ jobs:
         fi
 
     - name: Run PHP CS Fixer Security Rules
-      run: vendor/bin/php-cs-fixer fix --dry-run --diff --rules=@PSR12
+      run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
+      env:
+        PHP_CS_FIXER_IGNORE_ENV: 1
 
     - name: Run PHPStan Security Analysis
       run: vendor/bin/phpstan analyse --level=8
