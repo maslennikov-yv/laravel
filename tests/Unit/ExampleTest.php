@@ -12,7 +12,7 @@ test('basic math operations', function () {
 
 test('array operations', function () {
     $array = [1, 2, 3, 4, 5];
-    
+
     expect($array)
         ->toHaveCount(5)
         ->toContain(3)

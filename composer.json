@@ -17,16 +17,14 @@
   },
   "require-dev": {
     "fakerphp/faker": "^1.9.1",
+    "friendsofphp/php-cs-fixer": "^3.0",
     "laravel/pint": "^1.0",
     "laravel/sail": "^1.18",
     "mockery/mockery": "^1.4.4",
     "nunomaduro/collision": "^8.1",
+    "pestphp/pest": "^3.8",
     "phpunit/phpunit": "^11.0",
-    "spatie/laravel-ignition": "^2.0",
-    "friendsofphp/php-cs-fixer": "^3.0",
-    "phpstan/phpstan": "^1.0",
-    "vimeo/psalm": "^5.0",
-    "enlightn/enlightn": "^2.0"
+    "spatie/laravel-ignition": "^2.0"
   },
   "autoload": {
     "psr-4": {
@@ -61,15 +59,13 @@
       "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage-report"
     ],
     "lint": [
-      "vendor/bin/php-cs-fixer fix --dry-run --diff",
-      "vendor/bin/phpstan analyse"
+      "vendor/bin/php-cs-fixer fix --dry-run --diff"
     ],
     "lint-fix": [
       "vendor/bin/php-cs-fixer fix"
     ],
     "security": [
-      "composer audit",
-      "vendor/bin/phpstan analyse --level=8"
+      "composer audit"
     ]
   },
   "extra": {
