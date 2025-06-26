@@ -212,7 +212,7 @@ jobs:
       run: npm audit --audit-level=moderate
 
     - name: Run Snyk Security Scan (if token available)
-      if: secrets.SNYK_TOKEN != ''
+      if: ${{ secrets.SNYK_TOKEN != '' }}
       uses: snyk/actions/node@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
