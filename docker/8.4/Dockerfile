@@ -1,10 +1,10 @@
 # Multi-stage Laravel Dockerfile for Development
-# PHP 8.3 + All development tools
+# PHP 8.4 + All development tools
 
 # =============================================================================
-# Base stage - PHP 8.3 with extensions
+# Base stage - PHP 8.4 with extensions
 # =============================================================================
-FROM php:8.3-fpm-alpine as base
+FROM php:8.4-fpm-alpine as base
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -124,7 +124,7 @@ RUN mkdir -p \
 # Create health check endpoint
 RUN echo '<?php' > /var/www/html/public/health.php \
     && echo 'http_response_code(200);' >> /var/www/html/public/health.php \
-    && echo 'echo json_encode(["status" => "healthy", "timestamp" => date("c"), "service" => "php-fpm-dev"]);' >> /var/www/html/public/health.php
+    && echo 'echo json_encode(["status" => "healthy", "timestamp" => date("c"), "service" => "php-fpm-dev-8.4"]);' >> /var/www/html/public/health.php
 
 # Switch to www-data user
 USER www-data
