@@ -47,16 +47,13 @@
   },
   "lint-staged": {
     "*.{js,vue}": [
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ],
     "*.{css,scss}": [
-      "stylelint --fix",
-      "git add"
+      "stylelint --fix"
     ],
     "*.php": [
-      "docker compose -f docker-compose.dev.yml run --rm php-dev composer lint-fix",
-      "git add"
+      "docker compose -f docker-compose.dev.yml run --rm php-dev composer lint-fix"
     ]
   }
 }
