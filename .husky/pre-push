@@ -1,27 +1,35 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+
+# Ensure PATH includes common binary locations
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
 
 echo "🚀 Running pre-push checks in Docker containers..."
 
 # Check if Docker is available
-if ! command -v docker &> /dev/null; then
+if [ -x "/usr/bin/docker" ]; then
+    DOCKER_CMD="/usr/bin/docker"
+elif command -v docker &> /dev/null; then
+    DOCKER_CMD="docker"
+else
     echo "❌ Docker is not available. Please install Docker first."
     exit 1
 fi
 
 # Check if Docker Compose is available
-if ! docker compose version &> /dev/null; then
+if $DOCKER_CMD compose version &> /dev/null; then
+    echo "✅ Docker Compose is available"
+else
     echo "❌ Docker Compose is not available. Please install Docker Compose first."
     exit 1
 fi
 
 # Run security checks in PHP container
 echo "🔒 Running security checks..."
-docker compose -f docker-compose.dev.yml run --rm php-dev composer security
+$DOCKER_CMD compose -f docker-compose.dev.yml run --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer security
 
 # Run full test suite in PHP container
 echo "🧪 Running full test suite..."
-docker compose -f docker-compose.dev.yml run --rm php-dev composer test
+$DOCKER_CMD compose -f docker-compose.dev.yml run --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache -e PEST_CACHE_DIR=/tmp/pest-cache php-dev composer test
 
 # Check for any uncommitted changes
 if ! git diff-index --quiet HEAD --; then
