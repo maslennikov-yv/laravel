@@ -8,15 +8,13 @@ parameters:
         - routes
         - tests
     excludePaths:
-        - app/Console/Kernel.php
-        - app/Exceptions/Handler.php
-        - app/Http/Kernel.php
+        - app/Console/Kernel.php (?)
+        - app/Exceptions/Handler.php (?)
+        - app/Http/Kernel.php (?)
         - app/Providers/AppServiceProvider.php
-        - app/Providers/AuthServiceProvider.php
-        - app/Providers/EventServiceProvider.php
-        - app/Providers/RouteServiceProvider.php
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
+        - app/Providers/AuthServiceProvider.php (?)
+        - app/Providers/EventServiceProvider.php (?)
+        - app/Providers/RouteServiceProvider.php (?)
     ignoreErrors:
         - '#Call to an undefined method Illuminate\\Support\\Facades\\Hash::#'
         - '#Call to an undefined method Illuminate\\Support\\Facades\\Http::#'

@@ -132,12 +132,12 @@ jobs:
         fi
 
     - name: Run PHP CS Fixer Security Rules
-      run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
       env:
         PHP_CS_FIXER_IGNORE_ENV: 1
+      run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
 
     - name: Run PHPStan Security Analysis
-      run: vendor/bin/phpstan analyse --level=8
+      run: vendor/bin/phpstan analyse --level=8 --memory-limit=512M
 
     - name: Upload security report
       uses: actions/upload-artifact@v4
