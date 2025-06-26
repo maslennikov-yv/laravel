@@ -30,15 +30,15 @@ pest()->extend(Tests\TestCase::class)
 */
 
 expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
+    return expect($this->value)->toBe(1);
 });
 
 expect()->extend('toBeValidEmail', function () {
-    return $this->toMatch('/^[^\s@]+@[^\s@]+\.[^\s@]+$/');
+    return expect($this->value)->toMatch('/^[^\s@]+@[^\s@]+\.[^\s@]+$/');
 });
 
 expect()->extend('toBeValidUrl', function () {
-    return $this->toMatch('/^https?:\/\/.+/');
+    return expect($this->value)->toMatch('/^https?:\/\/.+/');
 });
 
 /*
@@ -52,11 +52,17 @@ expect()->extend('toBeValidUrl', function () {
 |
 */
 
+/**
+ * @param array<string, mixed> $attributes
+ */
 function createUser(array $attributes = []): \App\Models\User
 {
     return \App\Models\User::factory()->create($attributes);
 }
 
+/**
+ * @param array<string, mixed> $attributes
+ */
 function createUsers(int $count, array $attributes = []): \Illuminate\Database\Eloquent\Collection
 {
     return \App\Models\User::factory()->count($count)->create($attributes);

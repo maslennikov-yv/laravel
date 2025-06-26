@@ -40,7 +40,7 @@ Route::get('/api/health', function () {
         $redisStatus = 'unknown';
 
         try {
-            Redis::ping();
+            Redis::connection()->ping();
             $redisStatus = 'connected';
         } catch (Exception $e) {
             $redisStatus = 'disconnected';
