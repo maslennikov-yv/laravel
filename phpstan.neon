@@ -16,5 +16,5 @@ parameters:
         - app/Providers/EventServiceProvider.php (?)
         - app/Providers/RouteServiceProvider.php (?)
     ignoreErrors:
-        - '#Function createUser\(\) has parameter \\$attributes with no value type specified in iterable type array#'
-        - '#Function createUsers\(\) has parameter \\$attributes with no value type specified in iterable type array#'
+        - '#Function createUser\(\) has parameter \$attributes with no value type specified in iterable type array#'
+        - '#Function createUsers\(\) has parameter \$attributes with no value type specified in iterable type array#'
