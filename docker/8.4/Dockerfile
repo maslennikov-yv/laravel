@@ -80,13 +80,6 @@ RUN apk add --no-cache \
     python3 \
     py3-pip
 
-# Install global npm packages for development
-RUN npm install -g \
-    eslint@^8.0.0 \
-    stylelint@^15.0.0 \
-    prettier@^3.0.0 \
-    @vue/cli@^5.0.0
-
 # Copy PHP configuration
 COPY docker/8.4/php.ini /usr/local/etc/php/conf.d/99-custom.ini
 COPY docker/8.4/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
@@ -129,6 +122,9 @@ RUN echo '<?php' > /var/www/html/public/health.php \
 # Switch to www-data user
 USER www-data
 
+# Configure git to allow working with mounted repositories
+RUN git config --global --add safe.directory /var/www/html
+
 # Expose PHP-FPM port
 EXPOSE 9000
 
@@ -168,6 +164,9 @@ RUN echo '<?php' > /var/www/html/public/health.php \
 # Switch to www-data user
 USER www-data
 
+# Configure git to allow working with mounted repositories
+RUN git config --global --add safe.directory /var/www/html
+
 # Expose PHP-FPM port
 EXPOSE 9000
 
@@ -190,3 +189,35 @@ WORKDIR /var/www/html
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
+
+# =============================================================================
+# Combined stage - Nginx + PHP-FPM for Laravel
+# =============================================================================
+FROM development as laravel-app
+
+# Switch to root for installing nginx
+USER root
+
+# Install nginx
+RUN apk add --no-cache nginx
+
+# Copy nginx configuration
+COPY docker/8.4/nginx.conf /etc/nginx/http.d/default.conf
+
+# Configure nginx logs
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
+
+# Create nginx user and set permissions
+RUN addgroup -g 101 -S nginx || true && \
+    adduser -u 101 -D -S -G nginx nginx || true
+
+# Copy startup script
+COPY docker/8.4/start-container /usr/local/bin/start-container
+RUN chmod +x /usr/local/bin/start-container
+
+# Expose both ports
+EXPOSE 80 9000
+
+# Start container with our script
+CMD ["/usr/local/bin/start-container"]

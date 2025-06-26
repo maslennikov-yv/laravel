@@ -17,7 +17,7 @@
   },
   "require-dev": {
     "fakerphp/faker": "^1.9.1",
-    "friendsofphp/php-cs-fixer": "^3.0",
+    "friendsofphp/php-cs-fixer": "^3.49",
     "laravel/pint": "^1.0",
     "laravel/sail": "^1.18",
     "mockery/mockery": "^1.4.4",
@@ -59,10 +59,10 @@
       "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage-report"
     ],
     "lint": [
-      "vendor/bin/php-cs-fixer fix --dry-run --diff"
+      "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --dry-run --diff"
     ],
     "lint-fix": [
-      "vendor/bin/php-cs-fixer fix"
+      "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix"
     ],
     "security": [
       "composer audit"

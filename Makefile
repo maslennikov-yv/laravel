@@ -99,7 +99,7 @@ k8s-cfg-env: k8s-config-env
 
 # Docker/Sail команды
 SAIL := vendor/bin/sail
-PEST := $(SAIL) pest
+PEST := docker compose -f docker-compose.dev.yml run --rm -u $(shell id -u):$(shell id -g) php-dev composer test
 
 help: ## Показать справку
 	@echo "$(BLUE)📚 Laravel Example App - Доступные команды:$(RESET)"
@@ -831,70 +831,70 @@ docker-push-k8s: ## Собрать и загрузить образ в Microk8s 
 lint: ## Запустить все линтеры в Docker
 	@echo "$(GREEN)Запуск всех линтеров в Docker...$(RESET)"
 	@echo "$(BLUE)📦 JavaScript/TypeScript lint...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:js
 	@echo "$(BLUE)💄 CSS/SCSS lint...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:css
 	@echo "$(BLUE)🐘 PHP lint...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer lint
 	@echo "$(GREEN)✅ Все линтеры прошли успешно!$(RESET)"
 
 lint-js: ## Запустить только JavaScript/TypeScript линтер в Docker
 	@echo "$(GREEN)Запуск JavaScript/TypeScript линтера в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:js
 
 lint-css: ## Запустить только CSS/SCSS линтер в Docker
 	@echo "$(GREEN)Запуск CSS/SCSS линтера в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:css
 
 lint-php: ## Запустить только PHP линтер в Docker
 	@echo "$(GREEN)Запуск PHP линтера в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer lint
 
 lint-fix: ## Исправить все ошибки линтеров в Docker
 	@echo "$(GREEN)Исправление ошибок линтеров в Docker...$(RESET)"
 	@echo "$(BLUE)📦 Исправление JavaScript/TypeScript...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:js
 	@echo "$(BLUE)💄 Исправление CSS/SCSS...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:css
 	@echo "$(BLUE)🐘 Исправление PHP...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint-fix
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer lint-fix
 	@echo "$(GREEN)✅ Все ошибки исправлены!$(RESET)"
 
 lint-fix-js: ## Исправить только JavaScript/TypeScript ошибки в Docker
 	@echo "$(GREEN)Исправление JavaScript/TypeScript ошибок в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:js
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:js
 
 lint-fix-css: ## Исправить только CSS/SCSS ошибки в Docker
 	@echo "$(GREEN)Исправление CSS/SCSS ошибок в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run lint:css
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run lint:css
 
 lint-fix-php: ## Исправить только PHP ошибки в Docker
 	@echo "$(GREEN)Исправление PHP ошибок в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm php-dev composer lint-fix
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache php-dev composer lint-fix
 
 prettier: ## Запустить Prettier для форматирования кода в Docker
 	@echo "$(GREEN)Запуск Prettier в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run prettier:check
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run prettier:check
 
 prettier-fix: ## Исправить форматирование кода с Prettier в Docker
 	@echo "$(GREEN)Исправление форматирования с Prettier в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx prettier --write .
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npx prettier --write .
 
 stylelint: ## Запустить Stylelint для CSS/SCSS в Docker
 	@echo "$(GREEN)Запуск Stylelint в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npm run stylelint
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npm run stylelint
 
 stylelint-fix: ## Исправить CSS/SCSS с Stylelint в Docker
 	@echo "$(GREEN)Исправление CSS/SCSS с Stylelint в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx stylelint --fix resources/css/
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npx stylelint --fix resources/css/
 
 eslint: ## Запустить ESLint для JavaScript/TypeScript в Docker
 	@echo "$(GREEN)Запуск ESLint в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx eslint resources/js --ext .js,.vue
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npx eslint resources/js --ext .js,.vue
 
 eslint-fix: ## Исправить JavaScript/TypeScript с ESLint в Docker
 	@echo "$(GREEN)Исправление JavaScript/TypeScript с ESLint в Docker...$(RESET)"
-	docker compose -f docker-compose.dev.yml run -T --rm node-dev npx eslint resources/js --ext .js,.vue --fix
+	docker compose -f docker-compose.dev.yml run -T --rm -e COMPOSER_CACHE_DIR=/tmp/composer-cache node-dev npx eslint resources/js --ext .js,.vue --fix
 
 # =============================================================================
 # Алиасы для краткости

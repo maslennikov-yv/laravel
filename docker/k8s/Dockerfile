@@ -61,7 +61,7 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 # Copy package.json and install Node.js dependencies
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production --platform=linux --arch=x64
+RUN npm ci --only=production --platform=linux --arch=x64 --ignore-scripts
 
 # Copy source code
 COPY . .

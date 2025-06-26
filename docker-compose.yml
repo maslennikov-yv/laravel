@@ -3,6 +3,7 @@ services:
         build:
             context: ./docker/8.4
             dockerfile: Dockerfile
+            target: laravel-app
             args:
                 WWWGROUP: '${WWWGROUP:-1000}'
         image: sail-8.4/app
