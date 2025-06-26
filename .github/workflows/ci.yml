@@ -47,7 +47,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '20.18'
         cache: 'npm'
 
     - name: Copy .env
@@ -202,7 +202,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '20.18'
         cache: 'npm'
 
     - name: Install NPM dependencies
