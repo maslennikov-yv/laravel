@@ -1,33 +1,21 @@
 #!/usr/bin/env sh
 
-# Debug information
-echo "Debug: Current user: $(whoami)"
-echo "Debug: Current directory: $(pwd)"
-echo "Debug: PATH: $PATH"
-
 # Ensure PATH includes common binary locations
 export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
-echo "Debug: Updated PATH: $PATH"
 
 echo "🚀 Running pre-push checks in Docker containers..."
 
 # Check if Docker is available with multiple methods
-echo "Debug: Checking Docker availability..."
 if [ -x "/usr/bin/docker" ]; then
-    echo "✅ Docker found at /usr/bin/docker"
     DOCKER_CMD="/usr/bin/docker"
 elif command -v docker &> /dev/null; then
-    echo "✅ Docker found via PATH"
     DOCKER_CMD="docker"
 else
     echo "❌ Docker is not available. Please install Docker first."
-    echo "Debug: which docker result: $(which docker 2>&1)"
-    echo "Debug: ls -la /usr/bin/docker: $(ls -la /usr/bin/docker 2>&1)"
     exit 1
 fi
 
 # Check if Docker Compose is available
-echo "Debug: Checking Docker Compose availability..."
 if $DOCKER_CMD compose version &> /dev/null; then
     echo "✅ Docker Compose is available"
 else
