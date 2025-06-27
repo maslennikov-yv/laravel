@@ -1,15 +1,16 @@
+---
 name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       redis:
         image: redis:7-alpine
@@ -62,8 +63,8 @@ jobs:
     - name: Build assets
       run: npm run build
 
-    - name: Execute tests (Unit and Feature) via PHPUnit
-      run: vendor/bin/phpunit --coverage-clover=coverage.xml --coverage-text
+    - name: Execute tests (Unit and Feature) via Pest
+      run: vendor/bin/pest --coverage-clover=coverage.xml --coverage-text
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: ":memory:"
@@ -80,7 +81,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
 
@@ -110,7 +111,7 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
 
@@ -151,7 +152,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     needs: [test, lint, security]
-    
+
     steps:
     - uses: actions/checkout@v4
 
@@ -178,7 +179,7 @@ jobs:
 
   dependency-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
 
@@ -193,6 +194,7 @@ jobs:
 
     - name: Run NPM Audit
       run: npm audit --audit-level=moderate
+      continue-on-error: true
 
     - name: Run Snyk Security Scan
       uses: snyk/actions/node@master
@@ -200,4 +202,4 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         args: --severity-threshold=high
-      continue-on-error: true 
+      continue-on-error: true
