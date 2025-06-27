@@ -363,6 +363,28 @@ helm upgrade --install laravel-app helm/laravel-app \
   --values helm/laravel-app/values-prod.yaml
 ```
 
+## 🔄 CI/CD Pipeline
+
+### Continuous Integration (CI)
+
+- Runs on every push to `main` and `develop` branches
+- Executes tests, linting, and security checks
+- Builds and tests Docker images
+- Generates code coverage reports
+
+### Continuous Deployment (CD)
+
+- **Development**: Auto-deploys on push to `develop` branch
+- **Production**: Deploys on tag push (e.g., `v1.0.0`)
+
+### Security Scanning
+
+- Composer audit
+- NPM audit
+- Container vulnerability scanning (Trivy)
+- CodeQL analysis
+- Static analysis with PHPStan and Psalm
+
 ## 📊 Monitoring & Health Checks
 
 ### Health Endpoints
@@ -413,4 +435,3 @@ helm upgrade --install laravel-app helm/laravel-app \
 - [Helm Documentation](https://helm.sh/docs/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Husky Documentation](https://typicode.github.io/husky/)
-- [CI/CD Pipeline](CI_CD.md) - Complete CI/CD pipeline documentation
