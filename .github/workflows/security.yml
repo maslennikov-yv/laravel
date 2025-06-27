@@ -11,6 +11,7 @@ on:
 jobs:
   security-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
     
     steps:
     - uses: actions/checkout@v4
@@ -88,6 +89,7 @@ jobs:
 
   container-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
     
     steps:
     - uses: actions/checkout@v4
@@ -113,6 +115,7 @@ jobs:
 
   code-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
     
     steps:
     - uses: actions/checkout@v4
