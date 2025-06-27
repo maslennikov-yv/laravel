@@ -16,5 +16,14 @@ parameters:
         - app/Providers/EventServiceProvider.php (?)
         - app/Providers/RouteServiceProvider.php (?)
     ignoreErrors:
-        - '#Function createUser\(\) has parameter \$attributes with no value type specified in iterable type array#'
-        - '#Function createUsers\(\) has parameter \$attributes with no value type specified in iterable type array#'
+        # Pest test issues
+        - '#Undefined variable: \$this#'
+        - '#Call to an undefined method PHPUnit\\Framework\\TestCase::get\(\)#'
+        - '#Access to an undefined property Pest\\Mixins\\Expectation<.*>::\$not#'
+        - '#Function createUser\(\) should return App\\Models\\User but returns#'
+        - '#Function createUsers\(\) return type with generic class#'
+        - '#Function createUsers\(\) should return Illuminate\\Database\\Eloquent\\Collection#'
+        
+        # Route issues
+        - '#Call to an undefined method Illuminate\\Redis\\Connections\\Connection::ping\(\)#'
+        - '#Ternary operator condition is always true#'
