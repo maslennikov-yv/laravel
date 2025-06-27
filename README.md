@@ -189,7 +189,7 @@ make k8s-shell             # Connect to container shell
 
 # Laravel Application
 
-A modern Laravel application with Kubernetes deployment and comprehensive CI/CD pipeline.
+A modern Laravel application with Kubernetes deployment and comprehensive testing and deployment pipeline.
 
 ## 🚀 Quick Start
 
