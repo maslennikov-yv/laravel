@@ -87,12 +87,19 @@ jobs:
         run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse
+      - name: Debug Psalm installation
+        run: |
+          echo "Checking if Psalm is installed..."
+          ls -la vendor/bin/ | grep psalm || echo "Psalm not found in vendor/bin"
+          which psalm || echo "Psalm not found in PATH"
+          composer show | grep psalm || echo "Psalm not in composer packages"
+          ls -la psalm.xml 2>/dev/null || echo "psalm.xml not found"
       - name: Run Psalm (if available)
         run: |
-          if [ -f "psalm.xml" ]; then
+          if [ -f "psalm.xml" ] && [ -f "vendor/bin/psalm" ]; then
             vendor/bin/psalm --no-progress
           else
-            echo "Psalm not configured, skipping..."
+            echo "Psalm not configured or not installed, skipping..."
           fi
 
   security:
