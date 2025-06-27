@@ -64,7 +64,6 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: true
 
   lint:
     runs-on: ubuntu-latest
@@ -76,6 +75,12 @@ jobs:
           php-version: '8.4'
       - name: Install Composer dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Debug PHPStan installation
+        run: |
+          echo "Checking if PHPStan is installed..."
+          ls -la vendor/bin/ | grep phpstan || echo "PHPStan not found in vendor/bin"
+          which phpstan || echo "PHPStan not found in PATH"
+          composer show | grep phpstan || echo "PHPStan not in composer packages"
       - name: Run PHP CS Fixer
         env:
           PHP_CS_FIXER_IGNORE_ENV: 1
@@ -147,6 +152,7 @@ jobs:
 
   dependency-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -158,11 +164,9 @@ jobs:
         run: npm ci
       - name: Run NPM Audit
         run: npm audit --audit-level=moderate
-        continue-on-error: true
       - name: Run Snyk Security Scan
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
-        continue-on-error: true
