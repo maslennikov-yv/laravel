@@ -76,10 +76,6 @@ jobs:
     - name: Install NPM dependencies
       run: npm ci
 
-    - name: Run NPM Audit
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
-
     - name: Run Snyk Security Scan
       uses: snyk/actions/node@master
       env:
