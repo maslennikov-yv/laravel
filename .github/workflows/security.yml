@@ -60,29 +60,6 @@ jobs:
         path: security-report.json
         retention-days: 30
 
-  dependency-scan:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-
-    - name: Install NPM dependencies
-      run: npm ci
-
-    - name: Run Snyk Security Scan
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
-
   container-scan:
     runs-on: ubuntu-latest
     continue-on-error: true

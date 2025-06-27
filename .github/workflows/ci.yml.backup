@@ -1,0 +1,204 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_sqlite, gd, zip, curl, fileinfo, soap
+        coverage: xdebug
+
+      - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.18'
+        cache: 'npm'
+
+      - name: Copy .env
+      run: cp .env.example .env
+
+      - name: Install Composer dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Generate key
+      run: php artisan key:generate
+
+      - name: Set Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+      - name: Create Database
+      run: |
+        php artisan migrate --force
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: ":memory:"
+
+      - name: Install NPM dependencies
+      run: npm ci
+
+      - name: Build assets
+      run: npm run build
+
+      - name: Execute tests (Unit and Feature) via Pest
+      run: vendor/bin/pest --coverage-clover=coverage.xml --coverage-text
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: ":memory:"
+        REDIS_HOST: 127.0.0.1
+        REDIS_PORT: 6379
+
+      - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+
+      - name: Install Composer dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run PHP CS Fixer
+      env:
+        PHP_CS_FIXER_IGNORE_ENV: 1
+      run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
+
+      - name: Run PHPStan
+      run: vendor/bin/phpstan analyse
+
+      - name: Run Psalm (if available)
+      run: |
+        if [ -f "psalm.xml" ]; then
+          vendor/bin/psalm --no-progress
+        else
+          echo "Psalm not configured, skipping..."
+        fi
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+
+      - name: Install Composer dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run Composer Security Check
+      run: composer audit --format=json --no-interaction > security-report.json
+
+      - name: Run PHP Security Checker
+      run: |
+        if command -v security-checker &> /dev/null; then
+          security-checker security:check composer.lock
+        else
+          echo "Security checker not available, skipping..."
+        fi
+
+      - name: Run PHP CS Fixer Security Rules
+      env:
+        PHP_CS_FIXER_IGNORE_ENV: 1
+      run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
+
+      - name: Run PHPStan Security Analysis
+      run: vendor/bin/phpstan analyse --level=8 --memory-limit=512M
+
+      - name: Upload security report
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report
+        path: security-report.json
+        retention-days: 30
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [test, lint, security]
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+      run: |
+        docker build -t laravel-app:test -f docker/k8s/Dockerfile .
+        docker build -t laravel-nginx:test -f docker/k8s/nginx.Dockerfile .
+
+      - name: Test Docker image
+      run: |
+        docker run --rm laravel-app:test php artisan --version
+        docker run --rm laravel-nginx:test nginx -t
+
+      - name: Test Laravel application in container
+      run: |
+        # Test PHP-FPM container
+        docker run --rm -d --name test-laravel laravel-app:test
+        sleep 5
+        docker exec test-laravel php artisan route:list
+        docker stop test-laravel
+
+  dependency-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.18'
+        cache: 'npm'
+
+      - name: Install NPM dependencies
+      run: npm ci
+
+      - name: Run NPM Audit
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+
+      - name: Run Snyk Security Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+      continue-on-error: true 
